@@ -54,32 +54,40 @@ for year in range(2010,2022):
                     temp.append(parsed)
                     
             times[year] = temp
+            
 
-
-# calculating average laptimes and bootsrapped confidence intervals
-means = []
-lower = []
-upper = []
-
+# storing the data
+df = pd.DataFrame()
+data = 0
 for k,v in times.items():
-    v = np.array(v)
-    v = v[v<130]
-    times[k] = v
-    means.append(np.mean(v))
+    data = data + len(v)
+    new = pd.DataFrame({'time': v, 'year': k})
+    df = pd.concat([df, new], axis=0)
 
-    l, u = bootstrap_CI(v, 1000)
+new_index = [i for i in range(data)]
+df.index = new_index
 
-    lower.append(l)
-    upper.append(u)
-
-df = pd.DataFrame(index=[year for year in range(2010,2022)])
-df['mean'] = means
-df['lower'] = lower
-df['upper'] = upper
-df['year'] = df.index
-
+# excluding laps more than 2 mins (pitstops/safety cars, rain?)
+filtered = df[df['time'] < 120]
 
 #plotting the results
-f, ax = plt.subplots(nrows=1, ncols=1, figsize=(14, 10), sharex=True)
-plt.fill_between(x='year', y1='lower', y2='upper', data = df, alpha=.2, color='blue') # where lower/upper bound are array like y1 = df['c1'] - df['c3']
-sns.lineplot(x='year', y='mean', data=df, ax=ax, color='blue',marker='o',  markersize=10)
+f, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), sharex=True)
+sns.pointplot(data=filtered, x="year", y="time", ci=0, color='white', size=10)
+sns.pointplot(data=filtered, x="year", y="time", err_style="band", ci=99, linewidth=30 ,errwidth=3, color='#00D2BE', join=False)
+
+background = '#000915' 
+f.set_facecolor(background)
+ax.set_facecolor(background)
+ax.tick_params(axis='x', colors='white')
+ax.tick_params(axis='y', colors='white')
+ax.yaxis.label.set_color('white')
+ax.xaxis.label.set_color('white')
+ax.spines['bottom'].set_color('white')
+ax.spines['top'].set_color(background) 
+ax.spines['right'].set_color(background)
+ax.spines['left'].set_color('white')
+ax.grid(alpha=0.2)
+ax.set_title('Hungaroring Average Race Pace (with 99% CI)', color='white', weight='bold')
+ax.set_xlabel('year', weight='bold')
+ax.set_ylabel('Laptime', weight='bold')
+ax.set_yticklabels(['1:22','1:24','1:26','1:28','1:30','1:32','1:34','1:36'])
