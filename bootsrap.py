@@ -7,26 +7,7 @@ from collections import defaultdict
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
-def get_soup(url):
-    payload={}
-    headers = {}
-    response = requests.request("GET", url, headers=headers, data=payload)
-    soup = BS(response.content, 'html.parser')
-    return soup
-
-
-def bootstrap_CI(data, nbr_draws):
-    means = np.zeros(nbr_draws)
-    data = np.array(data)
-
-    for n in range(nbr_draws):
-        indices = np.random.randint(0, len(data), len(data))
-        data_tmp = data[indices] 
-        means[n] = np.nanmean(data_tmp)
-
-    return [np.nanpercentile(means, 2.5),np.nanpercentile(means, 97.5)]
-
+from utils import *
 
 # querying Hungaroring laptimes between 2010-2021
 times = defaultdict(list)
@@ -75,18 +56,7 @@ f, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 10), sharex=True)
 sns.pointplot(data=filtered, x="year", y="time", ci=0, color='white', size=10)
 sns.pointplot(data=filtered, x="year", y="time", err_style="band", ci=99, linewidth=30 ,errwidth=3, color='#00D2BE', join=False)
 
-background = '#000915' 
-f.set_facecolor(background)
-ax.set_facecolor(background)
-ax.tick_params(axis='x', colors='white')
-ax.tick_params(axis='y', colors='white')
-ax.yaxis.label.set_color('white')
-ax.xaxis.label.set_color('white')
-ax.spines['bottom'].set_color('white')
-ax.spines['top'].set_color(background) 
-ax.spines['right'].set_color(background)
-ax.spines['left'].set_color('white')
-ax.grid(alpha=0.2)
+f, ax = apply_coloscheme(f, ax)
 ax.set_title('Hungaroring Average Race Pace (with 99% CI)', color='white', weight='bold')
 ax.set_xlabel('year', weight='bold')
 ax.set_ylabel('Laptime', weight='bold')

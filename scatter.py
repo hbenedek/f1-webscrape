@@ -7,39 +7,13 @@ import numpy as np
 import datetime as dt
 from tqdm import tqdm
 
+from utils import *
+
 # https://documenter.getpostman.com/
 
-colormap = {
-    'Mercedes':	            '#00D2BE',
-    'Ferrari':	            '#DC0000',
-    'Red Bull':	            '#0600EF',	
-    'Alpine':           	'#0090FF',
-    'Haas':	                '#FFFFFF',	
-    'Aston Martin':	        '#006F62',	
-    'AlphaTauri':	        '#2B4562',	
-    'McLaren':	            '#FF8700',
-    'Alfa Romeo':       	'#900000',
-    'Williams':	            '#005AFF'}	
-
-
-url = f"http://ergast.com/api/f1/2021/drivers"
-payload={}
-headers = {}
-
-# querying drivers
-response = requests.request("GET", url, headers=headers, data=payload)
-
-soup = BS(response.content, 'html.parser')
-id = []
-for driver in soup.find_all('driver'):
-    id.append(driver['code'])
-
-drivers = pd.DataFrame(index=id)
-drivers['constructor'] = ['Alpine', 'Mercedes', 'AlphaTauri', 'Alfa Romeo', 'Mercedes', 'Williams', 'Williams', 'Ferrari', 'Haas', 'McLaren', 'Alpine', 'Red Bull',
-'Alfa Romeo', 'McLaren', 'Williams', 'Ferrari', 'Haas', 'Aston Martin', 'AlphaTauri', 'Red Bull', 'Aston Martin' ]
-drivers['color'] = drivers['constructor'].map(colormap)
-
 print('*** querying race results ***')
+
+drivers = get_drivers()
 
 results = drivers.copy()
 results = results.drop(['color','constructor'], axis=1)
@@ -99,21 +73,8 @@ drivers['race'] = results.mean(axis=1)
 #plotting results
 f, ax = plt.subplots(figsize=(10,10))
 sns.scatterplot(x='quali', y='race', data=drivers, hue='constructor', palette=colormap, ax=ax, s=60)
-
+f, ax = apply_colorscheme(f, ax)
 # making plot pretty
-background = '#000915' 
-f.set_facecolor(background)
-ax.set_facecolor(background)
-ax.tick_params(axis='x', colors='white')
-ax.tick_params(axis='y', colors='white')
-ax.yaxis.label.set_color('white')
-ax.xaxis.label.set_color('white')
-ax.spines['bottom'].set_color('white')
-ax.spines['top'].set_color(background) 
-ax.spines['right'].set_color(background)
-ax.spines['left'].set_color('white')
-ax.grid(alpha=0.1)
-ax.get_legend().remove()
 ax.set_xlabel('Average Qualifying Results', weight='bold')
 ax.set_ylabel('Average Race Results', weight='bold')
 ax.set_xticks([2,4,6,8,10,12,14,16,18,20])
